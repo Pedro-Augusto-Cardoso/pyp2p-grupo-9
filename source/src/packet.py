@@ -41,6 +41,7 @@ class Packet:
     def send(self, host, port):
         """
         Manda o packet para o host especificado.
+        
         :param host: Endereço do host. Pode ser um IP ou um domínio.
         :param port: Port do host.
         :return: Packet com tipo Response e chave body.
