@@ -6,6 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath('..'))
+
 project = 'pyp2p'
 copyright = '2025, grupo9'
 author = 'grupo9'
