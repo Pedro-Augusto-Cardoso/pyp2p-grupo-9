@@ -7,7 +7,12 @@ class Packet:
         self.content = json.dumps("{}", indent=4)
 
     def create(self, type, **kwargs):
-        # Faz um packet genérico com o tipo e os argumentos. Cada argumento tem um nome e um conteudo, sendo esses colocados em json e retornados.
+        """
+        Faz um packet genérico com o tipo e os argumentos. Cada argumento tem um nome e um conteudo, sendo esses colocados em json e retornados.
+
+        :param type: Tipo do packet.
+        :param **kwargs: Chaves do packet.
+        """
         packet = {
             "type": type
         }
@@ -18,7 +23,9 @@ class Packet:
         self.content = json_packet
 
     def createRegister(self):
-        # Cria mensagem de register baseada no arquivo peer_info.json
+        """
+        Cria mensagem de register baseada no arquivo peer_info.json
+        """
         f = open("peer_info.json", "r")
         peer_info = json.loads(f.read())
         try:
@@ -32,7 +39,13 @@ class Packet:
             print(f"Erro {e}.\nO arquivo de peer_info está certo?")
 
     def send(self, host, port):
-        # Manda o packet para o host especificado.
+        """
+        Manda o packet para o host especificado.
+        :param host: Endereço do host. Pode ser um IP ou um domínio.
+        :param port: Port do host.
+        :return: Packet com tipo Response e chave body.
+        :rtype: Packet
+        """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             sock.connect((host, port))
@@ -49,6 +62,9 @@ class Packet:
             print(f"[DEBUG] Content enviado: {self.content}")
 
     def relevant(self):
+        """
+        Printa informações relevantes ao packet.
+        """
         # Retorna conteúdo relevante do packet.
         content = self.content
         contentDict = json.loads(content)
