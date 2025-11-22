@@ -6,6 +6,9 @@
 pyp2p documentation
 ===================
 
-.. autoclass:: source.src.packet.Packet
+.. autoclass:: source.src.packetman.Packet
+   :members:
+
+.. autoclass:: source.src.comm.Connection
    :members:
 
