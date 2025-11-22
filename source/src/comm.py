@@ -1,6 +1,6 @@
 import json
 import socket
-import source.src.packetman.Packet
+from .packetman import Packet
 
 class Connection:
     """Gerencia a conexão dos peers e armazena nome, namespace, ip, porta do peer atual."""
