@@ -6,6 +6,9 @@
 pyp2p documentation
 ===================
 
+.. toctree::
+   :maxdepth: 2
+
 .. autoclass:: source.src.packetman.Packet
    :members:
 
