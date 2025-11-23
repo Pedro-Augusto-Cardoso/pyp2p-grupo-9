@@ -20,7 +20,7 @@ class Packet:
         for key, content in kwargs.items():
             packet[key] = content
         print("PACKET CRIADO:", str(packet))
-        json_packet = json.dumps(packet, indent=4)
+        json_packet = json.dumps(packet)
         self.content = json_packet
         return self
 
@@ -49,19 +49,43 @@ class Packet:
         :rtype: Dict
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(5)
+
+
         try:
             sock.connect((host, port))
-            sock.sendall(bytes(self.content, encoding="utf-8"))
+            #sock.sendall(bytes(self.content, encoding="utf-8"))
+            #received = sock.recv(1024)
+            #received = received.decode("utf-8")
+
+            # IMPORTANTE: o servidor rendezvous espera JSON em UMA LINHA terminada por '\n'
+            data = (self.content + "\n").encode("utf-8")
+            sock.sendall(data)
+
+            received = b""
+            # lê até achar um '\n' ou acabar a conexão
+            while True:
+                chunk = sock.recv(1024)
+                if not chunk:
+                    break
+                received += chunk
+                if b"\n" in chunk:
+                    break
+
+            received_str = received.decode("utf-8").strip()
 
 
-            received = sock.recv(1024)
-            received = received.decode("utf-8")
+
             print("[DEBUG] Enviado packet TCP com conteúdo", self.content, f"para {host}:{port}.")
             print(f"[DEBUG] Recebido de {host}:{port}", received, "retornando como Packet.")
-            return json.loads(received)
+            if not received_str:
+                return {}
+            return json.loads(received_str)
+
         except Exception as e:
             print("[DEBUG] Algo deu errado. Erro:", e)
             print(f"[DEBUG] Content enviado: {self.content}")
+            return {}
         finally:
             if not maintain:
                 sock.close()
