@@ -3,6 +3,8 @@ import socket
 from pathlib import Path
 #from .packetman import Packet
 from packetman import Packet
+import threading 
+import datetime
 
 
 class Connection:
@@ -19,8 +21,11 @@ class Connection:
         self.peerNamespace = ""
         self.peerPort = 0
         self.latestDiscover = []
+        self.tcpClient = None
 
         #info local
+        self.tcpServer = None
+
         self.name = peer_info["nome"]
         self.namespace = peer_info["namespace"]
 
@@ -145,4 +150,59 @@ class Connection:
         else:
             print(f"[HELLO] Resposta inesperada: {json.dumps(response, indent=2)}")
             return response
+        
+    def process(self, client, addr):
+        """
+        Processa a ultima comunicação recebida no servidor TCP. Deve ser colocado em instância de thread.
+
+        :param client: Objeto socket do cliente TCP.
+        :param addr: Lista com os valores de ip e port do client.
+        """
+        request = client.recv(1024)
+        print(f"[LISTEN] Recebido request: {request}")
+        packet = Packet(request)
+        packet.setType()
+        now = datetime.now()
+        formatted_timestamp = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        if packet.type == "PING":
+            response = Packet.create("PONG", msg_id="uuid", timestamp=formatted_timestamp, ttl=1)
+            response.send(addr[0], int(addr[1]))
+        elif packet.type == "SEND":
+            response = Packet.create("ACK", msg_id="uuid", timestamp=formatted_timestamp, ttl=1)
+            response.send(addr[0], int(addr[1]))
+
+
+    def startListen(self):
+        """
+        Abre a porta do endereço local para comunicação.
+
+        :return: Referência ao servidor TCP aberto.
+        :rtype: socket
+        """
+        bind_ip = "0.0.0.0" 
+        bind_port = self.port
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+        server.bind((bind_ip, bind_port)) 
+        server.listen(5) 
+        print(f"[LISTEN] Escutando no endereço {bind_ip}:{bind_port}")
+        self.tcpServer = server
+        return server
+    
+    def acceptClient(self, server):
+        """
+        Conecta novos clientes e retorna sua informação.
+
+        :param server: Servidor TCP recebendo comunicação.
+        :return: Endereço e thread de client.
+        :rtype: List, Thread
+        """
+        client, addr = server.accept()
+        client_handler = threading.Thread(target=self.process, args=(self, client, addr))
+        client_handler.start() 
+        self.tcpClient = client_handler
+        print(f"[LISTEN] Conexão aceita de {addr[0]}:{addr[1]}")
+
+        return addr, client_handler
+
+
         

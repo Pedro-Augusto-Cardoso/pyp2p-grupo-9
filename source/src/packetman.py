@@ -3,9 +3,15 @@ import socket
 
 class Packet:
     """Cria, envia e armazena packets. Contém métodos para criar packets específicos ou arbitrários."""
-    def __init__(self):
+    def __init__(self, packet = "{}"):
         self.type = "none"
-        self.content = json.dumps("{}", indent=4)
+        self.content = json.dumps(packet, indent=4)
+
+    def setType(self):
+        """
+        Ajusta o atributo type para o packet baseado no conteúdo.
+        """
+        self.type = self.content["type"]
 
     def create(self, type : str, **kwargs):
         """
@@ -13,6 +19,8 @@ class Packet:
 
         :param type: Tipo do packet.
         :param **kwargs: Chaves do packet.
+        :return: self.
+        :rtype: Packet.
         """
         packet = {
             "type": type
@@ -23,13 +31,7 @@ class Packet:
         json_packet = json.dumps(packet)
         self.content = json_packet
         return self
-
-    # def createRegister(self):
-    #     """
-    #     Cria mensagem de register baseada no arquivo peer_info.json
-    #     """
         
-
     def createDiscover(self):
         """Wrapper para criar um packet tipo Discover.
         
@@ -38,13 +40,12 @@ class Packet:
         """
         return self.create("DISCOVER")
 
-    def send(self, host : str, port : int, maintain : bool = False):
+    def send(self, host : str, port : int):
         """
         Manda o packet para o host especificado.
 
         :param host: Endereço do host. Pode ser um IP ou um domínio.
         :param port: Port do host.
-        :param maintain: Se a conexão deve ser mantida.
         :return: Json da resposta.
         :rtype: Dict
         """
@@ -73,22 +74,21 @@ class Packet:
                     break
 
             received_str = received.decode("utf-8").strip()
+            if not received_str:
+                return json.loads({})
 
 
 
             print("[DEBUG] Enviado packet TCP com conteúdo", self.content, f"para {host}:{port}.")
-            print(f"[DEBUG] Recebido de {host}:{port}", received, "retornando como Packet.")
-            if not received_str:
-                return {}
-            return json.loads(received_str)
+            print(f"[DEBUG] Recebido de {host}:{port}", received_str, "retornando como Packet.")
+            return received
 
         except Exception as e:
             print("[DEBUG] Algo deu errado. Erro:", e)
             print(f"[DEBUG] Content enviado: {self.content}")
             return {}
         finally:
-            if not maintain:
-                sock.close()
+            sock.close()
 
     def relevant(self, target : str = ""):
         """
