@@ -170,7 +170,9 @@ class Connection:
         elif packet.type == "SEND":
             response = Packet.create("ACK", msg_id="uuid", timestamp=formatted_timestamp, ttl=1)
             response.send(addr[0], int(addr[1]))
-
+        elif packet.type == "HELLO":
+            response = Packet.create("HELLO_OK", peer_id=(self.name + "@" + self.namespace), version="1.0", features=["ack", "metrics"], ttl=1)
+            response.send(addr[0], int(addr[1]))
 
     def startListen(self):
         """
